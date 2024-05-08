@@ -1,27 +1,37 @@
-import { Duration, Stack, StackProps  } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps, } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
+import { DynamoTableTrigger } from './dynamo-table-trigger';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import { FileAccept } from './file-accept';
 
 export class BackendStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+    
+    // Initialize the S3 bucket and deploy the scripts necessary for the EC2 instance
+    const AssetBucket = new s3.Bucket(this, "AssetBucket", {
+      publicReadAccess: false,
+    });
 
+    new s3deploy.BucketDeployment(this, "DeployFiles", {
+      sources: [s3deploy.Source.asset("resources/scripts")],
+      destinationBucket: AssetBucket,
+    });
+
+    // Initialize the DynamoDB table and trigger
     const table = new dynamodb.Table(this, 'FileTable', { 
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, 
       billingMode: dynamodb.BillingMode.PROVISIONED, 
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
-      readCapacity: 20,
-      writeCapacity: 20,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      sortKey: {name: 'createdAt', type: dynamodb.AttributeType.NUMBER},
       pointInTimeRecovery: true,
-      tableClass: dynamodb.TableClass.STANDARD_INFREQUENT_ACCESS,
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
     });
 
-    console.log(table.tableArn);
+    new DynamoTableTrigger(this, 'DynamoTableTrigger', table, AssetBucket.bucketName);
+    new FileAccept(this, 'FileAccept', table.tableName, [AssetBucket.bucketName]);
   }
 }
