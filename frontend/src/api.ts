@@ -21,14 +21,12 @@ const uploadFileToS3 = async (file: File, user: string) => {
     // check if url is valid
     if ('url' in urlRespJson) {
         const url = urlRespJson.url;
-        const formData = new FormData();
-        formData.append('file', file);
         const uploadResp = await fetch(url, {
             method: 'PUT',
             headers: {
                 contentType: 'text/plain'
             },
-            body: formData,
+            body: file,
         });
 
         const result = await uploadResp.text();

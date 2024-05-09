@@ -8,12 +8,17 @@ import { PolicyStatement, Role, ServicePrincipal, InstanceProfile, ManagedPolicy
 
 export class FileAccept extends Construct {
     url: string;
+    restFunc: NodejsFunction;
 
     constructor(scope: Construct, id: string, tableName: string, disallowedBuckets: string[] = []) {
         super(scope, id);
         const restFunc = new NodejsFunction(this, 'function');
         const apiEndpoint = new apigateway.LambdaRestApi(this, 'submitFile', {
             handler: restFunc,
+            defaultCorsPreflightOptions: {
+                allowOrigins: apigateway.Cors.ALL_ORIGINS,
+                allowMethods: apigateway.Cors.ALL_METHODS,
+            },
         });
         restFunc.addEnvironment('TABLE_NAME', tableName);
         restFunc.addEnvironment('DISALLOWED_BUCKETS', disallowedBuckets.join(','));
@@ -21,11 +26,16 @@ export class FileAccept extends Construct {
             actions: ['s3:HeadObject', 's3:GetObject', "dynamodb:PutItem", "dynamodb:GetItem"],
             resources: ['*'],
         }));
-
+        
+        this.restFunc = restFunc;
         this.url = apiEndpoint.url;
     }
 
     getURL() {
         return this.url;
+    }
+
+    setCORSEnv(webUrl: string) {
+        this.restFunc.addEnvironment('CORS_ORIGIN', webUrl);
     }
 }

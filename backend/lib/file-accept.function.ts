@@ -10,9 +10,15 @@ export const handler: Handler = async (event, context) => {
         throw new Error('Table name not set');
     }
 
+    const headers = {
+        'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || '*',
+        'Access-Control-Allow-Credentials': true,
+    }
+
     if (!('body' in event)) {
         return {
             statusCode: 400,
+            headers: headers,
             body: JSON.stringify('Bad Request'),
         };
     }
@@ -29,6 +35,7 @@ export const handler: Handler = async (event, context) => {
             console.log('User cannot be asset bucket');
             return {
                 statusCode: 400,
+                headers: headers,
                 body: JSON.stringify('Bad User'),
             }
         }
@@ -45,6 +52,7 @@ export const handler: Handler = async (event, context) => {
             console.log(err);
             return {
                 statusCode: 400,
+                headers: headers,
                 body: JSON.stringify('File was not uploaded'),
             }
         }
@@ -63,6 +71,7 @@ export const handler: Handler = async (event, context) => {
             console.log(`User ${user} already has file ${file}`);
             return {
                 statusCode: 400,
+                headers: headers,
                 body: JSON.stringify('File already exists'),
             }
         } catch (err) {
@@ -82,12 +91,14 @@ export const handler: Handler = async (event, context) => {
         console.log(`Received file ${event.file} from user ${event.user}`);
         return {
             statusCode: 200,
+            headers: headers,
             body: JSON.stringify('File accepted, processing...'),
         }
     }
 
     return {
         statusCode: 400,
+        headers: headers,
         body: JSON.stringify('Bad Request'),
     };
 };

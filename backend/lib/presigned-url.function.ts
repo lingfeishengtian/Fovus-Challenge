@@ -5,10 +5,16 @@ export const handler: Handler = async (event, context) => {
     const key = event.queryStringParameters.key;
     const bucketName = event.queryStringParameters.bucketName;
 
+    const headers = {
+        'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || '*',
+        'Access-Control-Allow-Credentials': true,
+    }
+
     if (process.env.DISALLOWED_BUCKETS !== undefined && process.env.DISALLOWED_BUCKETS.split(',').includes(bucketName)) {
         console.log('User cannot be asset bucket');
         return {
             statusCode: 400,
+            headers: headers,
             body: JSON.stringify('Bad User'),
         }
     }
@@ -18,6 +24,19 @@ export const handler: Handler = async (event, context) => {
     console.log(bucketName)
     await s3.createBucket({
         Bucket: bucketName,
+    }).promise();
+
+    await s3.putBucketCors({
+        Bucket: bucketName,
+        CORSConfiguration: {
+            CORSRules: [
+                {
+                    AllowedHeaders: ["*"],
+                    AllowedMethods: ["PUT", "POST", "DELETE"],
+                    AllowedOrigins: [process.env.CORS_ORIGIN || '*'],
+                }
+            ]
+        }
     }).promise();
 
     var url = await new AWS.S3({
@@ -32,11 +51,13 @@ export const handler: Handler = async (event, context) => {
     } else {
         return {
             statusCode: 400,
+            headers: headers,
             body: JSON.stringify('Bad Request'),
         };
     }
     return {
         statusCode: 200,
+        headers: headers,
         body: JSON.stringify({
             url: url,
         }),

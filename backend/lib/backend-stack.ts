@@ -87,5 +87,9 @@ export class BackendStack extends Stack {
 
     frontend.addEnvironment('REACT_APP_SubmitFileEndpoint', fileAcceptEndpoint.url);
     frontend.addEnvironment('REACT_APP_PresignedUrlEndpoint', presignedUrlEndpoint.url);
+
+    // In production envriornment, set CORS to be the URL of the frontend
+    fileAcceptEndpoint.setCORSEnv("*");
+    presignedUrlEndpoint.setCORSEnv("*");
   }
 }
