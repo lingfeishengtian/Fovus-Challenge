@@ -11,7 +11,8 @@ frontend:
   artifacts:
     baseDirectory: build
     files:
-      - ['**/*']
+      - '**/*'
+      - 'index.html'
   cache:
     paths:
       - node_modules/**/*
