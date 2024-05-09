@@ -6,11 +6,12 @@ frontend:
         - npm ci
     build:
       commands:
-        - npm run build
+        - node -v
+        - npm run-script build
   artifacts:
     baseDirectory: build
     files:
-      - "**/*"
+      - ['**/*']
   cache:
     paths:
       - node_modules/**/*
