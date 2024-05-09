@@ -6,7 +6,7 @@ const s3 = new AWS.S3();
 
 const USER_PREFIX = 'fovuschal-backendstack-'
 // randomly generated ID for this particular frontend instance, it can be freely changed to anything
-const CURRENT_INSTANCE_ID = 'i-1389nF0WDj-'
+const CURRENT_INSTANCE_ID = 'i-1389nIF2Dj-'
 
 const generateBucketNameFromUser = (user: string) => {
     return `${USER_PREFIX}${CURRENT_INSTANCE_ID}${user}`.toLowerCase();
