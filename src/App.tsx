@@ -6,18 +6,19 @@ import { submitFile, uploadFileToS3 } from './api';
 function App() {
   const [loading, setLoading] = React.useState(false);
 
+  console.log('Loading: ' + loading)
   return (
     <div className='flex w-full h-full justify-center align-middle items-center bg-slate-800 text-white'>
       {/* bg-gradient-to-br from-blue-700 via-purple-500 (testing gradient design) */}
-    {loading ??
-      <div className="absolute bg-slate-400 bg-opacity-60 h-full w-full flex items-center justify-center">
-        <div className="flex items-center">
-          <svg className="animate-spin h-20 w-20 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="24" cy="24" r="100" stroke="currentColor" stroke-width="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
-      </div>}
+      {loading ?
+        <div className="absolute bg-slate-400 bg-opacity-60 h-full w-full flex items-center justify-center">
+          <div className="flex items-center">
+            <svg className="animate-spin h-20 w-20 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="24" cy="24" r="100" stroke="currentColor" stroke-width="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        </div> : <div/>}
 
       <div className='flex w-1/2 rounded-3xl p-4 items-center justify-center flex-col text-white'>
         <h1 className="text-3xl font-bold">
