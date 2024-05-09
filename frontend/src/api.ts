@@ -26,7 +26,7 @@ const uploadFileToS3 = async (file: File, user: string) => {
         const uploadResp = await fetch(url, {
             method: 'PUT',
             headers: {
-                contentType: 'application/octet-stream'
+                contentType: 'text/plain'
             },
             body: formData,
         });

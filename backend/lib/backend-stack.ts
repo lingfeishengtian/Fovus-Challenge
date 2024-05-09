@@ -1,4 +1,4 @@
-import { Duration, Stack, StackProps, } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
@@ -7,6 +7,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import { FileAccept } from './file-accept';
 import { PresignedUrl } from './presigned-url';
+import * as aws_amplify_alpha from '@aws-cdk/aws-amplify-alpha';
 
 export class BackendStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -33,7 +34,58 @@ export class BackendStack extends Stack {
     });
 
     new DynamoTableTrigger(this, 'DynamoTableTrigger', table, AssetBucket.bucketName);
-    new FileAccept(this, 'FileAccept', table.tableName, [AssetBucket.bucketName]);
-    new PresignedUrl(this, 'PresignedUrl', [AssetBucket.bucketName]);
+    let fileAcceptEndpoint = new FileAccept(this, 'FileAccept', table.tableName, [AssetBucket.bucketName]);
+    let presignedUrlEndpoint = new PresignedUrl(this, 'PresignedUrl', [AssetBucket.bucketName]);
+
+    const frontend = new aws_amplify_alpha.App(this, 'Frontend', {
+      sourceCodeProvider: new aws_amplify_alpha.GitHubSourceCodeProvider({
+        owner: 'lingfeishengtian',
+        repository: 'fovus-challenge',
+        oauthToken: cdk.SecretValue.secretsManager('github-token'),
+      }),
+      autoBranchCreation: {
+        patterns: ['*'],
+        basicAuth: aws_amplify_alpha.BasicAuth.fromGeneratedPassword('username'),
+      },
+      autoBranchDeletion: true,
+      buildSpec: cdk.aws_codebuild.BuildSpec.fromObject({
+        version: '1.0',
+        frontend: {
+          phases: {
+            preBuild: {
+              commands: [
+                'npm ci',
+              ],
+            },
+            build: {
+              commands: [
+                'npm run build',
+              ],
+            },
+          },
+          artifacts: {
+            baseDirectory: 'build',
+            files: '**/*',
+          },
+          cache: {
+            paths: ['node_modules/**/*'],
+          },
+        },
+      }),
+    });
+
+    const frontend_only = frontend.addBranch('frontend_only', 
+      {
+        autoBuild: true,
+        stage: 'PRODUCTION',
+        environmentVariables: {
+          "REACT_APP_SubmitFileEndpoint":  fileAcceptEndpoint.url ,
+          "REACT_APP_PresignedUrlEndpoint": presignedUrlEndpoint.url ,
+        },
+      }
+    );
+
+    frontend.addEnvironment('REACT_APP_SubmitFileEndpoint', fileAcceptEndpoint.url);
+    frontend.addEnvironment('REACT_APP_PresignedUrlEndpoint', presignedUrlEndpoint.url);
   }
 }

@@ -7,6 +7,8 @@ import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { PolicyStatement, Role, ServicePrincipal, InstanceProfile, ManagedPolicy } from "aws-cdk-lib/aws-iam";
 
 export class FileAccept extends Construct {
+    url: string;
+
     constructor(scope: Construct, id: string, tableName: string, disallowedBuckets: string[] = []) {
         super(scope, id);
         const restFunc = new NodejsFunction(this, 'function');
@@ -19,5 +21,11 @@ export class FileAccept extends Construct {
             actions: ['s3:HeadObject', 's3:GetObject', "dynamodb:PutItem", "dynamodb:GetItem"],
             resources: ['*'],
         }));
+
+        this.url = apiEndpoint.url;
+    }
+
+    getURL() {
+        return this.url;
     }
 }

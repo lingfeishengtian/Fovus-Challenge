@@ -7,6 +7,8 @@ import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { PolicyStatement, Role, ServicePrincipal, InstanceProfile, ManagedPolicy } from "aws-cdk-lib/aws-iam";
 
 export class PresignedUrl extends Construct {
+    url: string;
+
     constructor(scope: Construct, id: string, disallowedBuckets: string[] = []) {
         super(scope, id);
         const restFunc = new NodejsFunction(this, 'function');
@@ -19,5 +21,11 @@ export class PresignedUrl extends Construct {
             actions: ["s3:PutObject", "s3:GetObject", "s3:CreateBucket"],
             resources: ['*'],
         }));
+
+        this.url = apiEndpoint.url;
+    }
+
+    getURL() {
+        return this.url;
     }
 }

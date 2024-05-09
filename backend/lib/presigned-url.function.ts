@@ -25,7 +25,7 @@ export const handler: Handler = async (event, context) => {
     }).getSignedUrlPromise('putObject', {
         Bucket: bucketName,
         Key: key,
-        ContentType: 'application/octet-stream'
+        ContentType: 'text/plain'
     });
     if (url) {
         console.log(`Generated URL: ${url}`);
