@@ -22,6 +22,7 @@ export class DynamoTableTrigger extends Construct {
         dynamotablelambda.addEventSource(new DynamoEventSource(table, {
           startingPosition: lambda.StartingPosition.LATEST,
           batchSize: 1,
+          retryAttempts: 0,
         }))
 
         const role = new Role(this, 'role', {
@@ -29,7 +30,7 @@ export class DynamoTableTrigger extends Construct {
         });
 
         role.addToPolicy(new PolicyStatement({
-            actions: ['s3:GetObject'],
+            actions: ['s3:GetObject', 'dynamodb:PutItem', 's3:PutObject'],
             resources: ['*'],
         }));
 
@@ -39,5 +40,6 @@ export class DynamoTableTrigger extends Construct {
 
         dynamotablelambda.addEnvironment('INSTANCE_PROFILE', instanceProfile.instanceProfileArn);
         dynamotablelambda.addEnvironment('BUCKET_NAME', bucketName);
+        dynamotablelambda.addEnvironment('TABLE_NAME', table.tableName);
     }
 }

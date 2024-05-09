@@ -6,6 +6,7 @@ import { DynamoTableTrigger } from './dynamo-table-trigger';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import { FileAccept } from './file-accept';
+import { PresignedUrl } from './presigned-url';
 
 export class BackendStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -33,5 +34,6 @@ export class BackendStack extends Stack {
 
     new DynamoTableTrigger(this, 'DynamoTableTrigger', table, AssetBucket.bucketName);
     new FileAccept(this, 'FileAccept', table.tableName, [AssetBucket.bucketName]);
+    new PresignedUrl(this, 'PresignedUrl', [AssetBucket.bucketName]);
   }
 }

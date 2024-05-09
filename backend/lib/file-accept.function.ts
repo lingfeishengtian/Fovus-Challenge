@@ -49,7 +49,7 @@ export const handler: Handler = async (event, context) => {
             }
         }
 
-        // does user already have this file?
+        // does user already have output file?
         const docClient = new AWS.DynamoDB.DocumentClient();
 
         try {
