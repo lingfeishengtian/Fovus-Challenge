@@ -22,9 +22,13 @@ export const handler: Handler = async (event, context) => {
     // create bucket if it doesn't exist
     const s3 = new AWS.S3();
     console.log(bucketName)
-    await s3.createBucket({
-        Bucket: bucketName,
-    }).promise();
+    try {
+        await s3.createBucket({
+            Bucket: bucketName,
+        }).promise();
+    } catch (err) {
+        console.log(err);
+    }
 
     await s3.putBucketCors({
         Bucket: bucketName,

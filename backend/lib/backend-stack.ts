@@ -12,7 +12,7 @@ import * as aws_amplify_alpha from '@aws-cdk/aws-amplify-alpha';
 export class BackendStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    
+
     // Initialize the S3 bucket and deploy the scripts necessary for the EC2 instance
     const AssetBucket = new s3.Bucket(this, "AssetBucket", {
       publicReadAccess: false,
@@ -24,9 +24,9 @@ export class BackendStack extends Stack {
     });
 
     // Initialize the DynamoDB table and trigger
-    const table = new dynamodb.Table(this, 'FileTable', { 
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, 
-      billingMode: dynamodb.BillingMode.PROVISIONED, 
+    const table = new dynamodb.Table(this, 'FileTable', {
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PROVISIONED,
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pointInTimeRecovery: true,
@@ -41,46 +41,22 @@ export class BackendStack extends Stack {
       sourceCodeProvider: new aws_amplify_alpha.GitHubSourceCodeProvider({
         owner: 'lingfeishengtian',
         repository: 'fovus-challenge',
-        oauthToken: cdk.SecretValue.secretsManager('github-token'),
+        oauthToken: cdk.SecretValue.secretsManager('github-access-token'),
       }),
       autoBranchCreation: {
         patterns: ['*'],
         basicAuth: aws_amplify_alpha.BasicAuth.fromGeneratedPassword('username'),
       },
       autoBranchDeletion: true,
-      buildSpec: cdk.aws_codebuild.BuildSpec.fromObject({
-        version: '1.0',
-        frontend: {
-          phases: {
-            preBuild: {
-              commands: [
-                'npm ci',
-              ],
-            },
-            build: {
-              commands: [
-                'npm run build',
-              ],
-            },
-          },
-          artifacts: {
-            baseDirectory: 'build',
-            files: '**/*',
-          },
-          cache: {
-            paths: ['node_modules/**/*'],
-          },
-        },
-      }),
     });
 
-    const frontend_only = frontend.addBranch('frontend_only', 
+    const frontend_only = frontend.addBranch('frontend_only',
       {
         autoBuild: true,
         stage: 'PRODUCTION',
         environmentVariables: {
-          "REACT_APP_SubmitFileEndpoint":  fileAcceptEndpoint.url ,
-          "REACT_APP_PresignedUrlEndpoint": presignedUrlEndpoint.url ,
+          "REACT_APP_SubmitFileEndpoint": fileAcceptEndpoint.url,
+          "REACT_APP_PresignedUrlEndpoint": presignedUrlEndpoint.url,
         },
       }
     );
@@ -91,5 +67,23 @@ export class BackendStack extends Stack {
     // In production envriornment, set CORS to be the URL of the frontend
     fileAcceptEndpoint.setCORSEnv("*");
     presignedUrlEndpoint.setCORSEnv("*");
+
+    const build_trigger = new cdk.custom_resources.AwsCustomResource(this, 'triggerAppBuild', {
+      policy: cdk.custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cdk.custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE
+      }),
+      onCreate: {
+        service: 'Amplify',
+        action: 'startJob',
+        physicalResourceId: cdk.custom_resources.PhysicalResourceId.of('app-build-trigger'),
+        parameters: {
+          appId: frontend.appId,
+          branchName: frontend_only.branchName,
+          jobType: 'RELEASE',
+          jobReason: 'Auto Start build',
+        }
+      },
+    });
+
   }
 }

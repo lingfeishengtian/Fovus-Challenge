@@ -18,7 +18,7 @@ export const handler: Handler = async (event, context) => {
         UserData: Buffer.from(`#!/bin/bash
         aws s3 cp s3://${process.env.BUCKET_NAME}/vpcScript.sh /tmp/vpcScript.sh
         sudo chmod +x /tmp/vpcScript.sh
-        cd /tmp; /tmp/vpcScript.sh ${event.Records[0].dynamodb.NewImage.input_file_path.S} ${event.Records[0].dynamodb.NewImage.input_text.S} ${event.Records[0].dynamodb.NewImage.id.S} ${process.env.TABLE_NAME}
+        cd /tmp; /tmp/vpcScript.sh "${event.Records[0].dynamodb.NewImage.input_file_path.S}" "${event.Records[0].dynamodb.NewImage.input_text.S}" "${event.Records[0].dynamodb.NewImage.id.S}" "${process.env.TABLE_NAME}"
         `, 'utf8').toString('base64'),
         IamInstanceProfile: {
             Arn: process.env.INSTANCE_PROFILE

@@ -47,6 +47,12 @@ function App() {
               return;
             }
 
+            if (/^\s+$/.test(user)) {
+              setLoading(false);
+              alert('User cannot contain whitespace');
+              return;
+            }
+
             try {
               console.log("Bucket: " + await uploadFileToS3(file, user));
 
@@ -58,7 +64,7 @@ function App() {
                 setLoading(false);
               });
             } catch (err) {
-              alert(err);
+              alert("There was an error with the current user, please try a different username.");
               setLoading(false);
             }
           }
