@@ -1,5 +1,7 @@
 # Fovus Challenge
 
+**NOTE:** I FULLY SUPPORT THE USE OF THIS CODE TO HELP YOU THROUGH YOUR INTERVIEW PROCESS ♥️♥️
+
 # Writeup on the Interview Process
 
 For those who stumble upon this repository, I warn you to against continuing this project. The company's requirements for the interview process are not only absurd, but is purposely designed to trap students and gain free labor. 
